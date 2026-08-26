@@ -109,25 +109,7 @@ def get_site_detail(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    # Kiểm tra user có phải thành viên công trình không
-    member = (
-        db.query(SiteMember)
-        .filter(
-            SiteMember.site_id == site_id,
-            SiteMember.user_id == current_user.id
-        )
-        .first()
-    )
-
-    # Không phải member thì không được xem
-    if member is None:
-        raise HTTPException(
-            status_code=403,
-            detail="Bạn không phải thành viên công trình"
-        )
-
-
-    # Tìm công trình
+    # Tìm công trình trước
     site = (
         db.query(ConstructionSite)
         .filter(
@@ -141,6 +123,26 @@ def get_site_detail(
         raise HTTPException(
             status_code=404,
             detail="Không tìm thấy công trình"
+        )
+
+    # Kiểm tra user có phải OWNER của công trình không
+    is_owner = site.owner_id == current_user.id
+
+    # Kiểm tra user có phải MEMBER của công trình không
+    member = (
+        db.query(SiteMember)
+        .filter(
+            SiteMember.site_id == site_id,
+            SiteMember.user_id == current_user.id
+        )
+        .first()
+    )
+
+    # OWNER hoặc MEMBER đều được xem
+    if not is_owner and member is None:
+        raise HTTPException(
+            status_code=403,
+            detail="Bạn không có quyền xem công trình này"
         )
 
     return site

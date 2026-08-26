@@ -7,7 +7,7 @@ from app.models.user import User
 from app.models.site import ConstructionSite, SiteMember
 from app.models.works_item import WorkItem
 
-from app.routers import auth, users, site
+from app.routers import auth, users, site, work_item
 
 # Tạo các bảng trong database
 Base.metadata.create_all(bind=engine)
@@ -23,6 +23,9 @@ app.include_router(users.router)
 
 # API công trình
 app.include_router(site.router)
+
+# API work_item
+app.include_router(work_item.router)
 
 # test database
 @app.get("/test-db")

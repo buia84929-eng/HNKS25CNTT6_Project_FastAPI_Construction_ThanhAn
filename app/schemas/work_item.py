@@ -1,34 +1,40 @@
+from pydantic import BaseModel, ConfigDict
 from datetime import datetime
-from pydantic import BaseModel
 
-class WorkItemBase(BaseModel):
+# TẠO HẠNG MỤC
+class WorkItemCreate(BaseModel):
+    # Tiêu đề công việc
     title: str
+    # Mô tả công việc (không bắt buộc)
     description: str | None = None
+    # Người được giao
     assignee_id: int | None = None
-    status: str = "TODO"
+    # Độ ưu tiên
     priority: str = "MEDIUM"
+    # Hạn hoàn thành
     due_date: datetime | None = None
-# Thông tin cơ bản của công việc
 
-class WorkItemCreate(WorkItemBase):
-    pass
-# Dùng khi tạo công việc mới
-
+# CẬP NHẬT HẠNG MỤC
 class WorkItemUpdate(BaseModel):
+    # Các trường đều optional vì PATCH
     title: str | None = None
     description: str | None = None
     assignee_id: int | None = None
-    status: str | None = None
     priority: str | None = None
+    status: str | None = None
     due_date: datetime | None = None
-# Dùng khi cập nhật công việc
 
-class WorkItemResponse(WorkItemBase):
+# RESPONSE
+class WorkItemResponse(BaseModel):
+
     id: int
     site_id: int
+    title: str
+    description: str | None
+    assignee_id: int | None
+    status: str
+    priority: str
+    due_date: datetime | None
     created_at: datetime
-# Dữ liệu trả về cho client
 
-    class Config:
-        from_attributes = True
-    # Cho phép Pydantic đọc dữ liệu từ SQL
+    model_config = ConfigDict(from_attributes=True)

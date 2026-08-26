@@ -25,9 +25,18 @@ try:
         is_active=True
     )
 
+    user3 = User(
+    email="outsider@gmail.com",
+    password_hash=hash_password("123"),
+    full_name="Nguyen Van B",
+    role="USER",
+    is_active=True
+    )
+
     # Thêm user vào database
     db.add(user1)
     db.add(user2)
+    db.add(user3)
 
     # Commit để database tạo ID cho user
     db.commit()
@@ -35,6 +44,7 @@ try:
     # Refresh để lấy ID vừa được database tạo
     db.refresh(user1)
     db.refresh(user2)
+    db.refresh(user3)
 
     # 2. TẠO CÔNG TRÌNH MẪU
     site = ConstructionSite(
