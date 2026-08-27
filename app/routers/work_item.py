@@ -316,6 +316,15 @@ def search_work_items(
     # offset: bỏ qua bao nhiêu công việc đầu tiên
     offset: int = 0,
 
+    # Sort theo trường nào
+    # Có thể là created_at hoặc due_date
+    sort_by: str = "created_at",
+
+    # Thứ tự sort
+    # asc = tăng dần
+    # desc = giảm dần
+    sort_order: str = "desc",
+
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -385,10 +394,66 @@ def search_work_items(
             WorkItem.assignee_id == assignee_id
         )
 
+    # SORT
+
+    # Sắp xếp theo ngày tạo mới nhất trước
+    query = query.order_by(
+        WorkItem.created_at.desc()
+    )
+
+    # SORT
+
+    # Chỉ cho phép sort theo 2 trường mà đề bài yêu cầu
+    if sort_by not in ["created_at", "due_date"]:
+        raise HTTPException(
+            status_code=400,
+            detail="sort_by chỉ được là created_at hoặc due_date"
+        )
+
+    # Chỉ cho phép 2 kiểu sắp xếp
+    if sort_order not in ["asc", "desc"]:
+        raise HTTPException(
+            status_code=400,
+            detail="sort_order chỉ được là asc hoặc desc"
+        )
+
+    # Sắp xếp theo created_at
+
+    if sort_by == "created_at":
+
+        if sort_order == "asc":
+            # Cũ -> mới
+            query = query.order_by(
+                WorkItem.created_at.asc()
+            )
+
+        else:
+            # Mới -> cũ
+            query = query.order_by(
+                WorkItem.created_at.desc()
+            )
+
+    # Sắp xếp theo due_date
+
+    elif sort_by == "due_date":
+
+        if sort_order == "asc":
+            # Hạn gần -> hạn xa
+            query = query.order_by(
+                WorkItem.due_date.asc()
+            )
+
+        else:
+            # Hạn xa -> hạn gần
+            query = query.order_by(
+                WorkItem.due_date.desc()
+            )
+
     # PHÂN TRANG
 
-    # Bỏ qua số lượng bản ghi theo offset
-    # và chỉ lấy số lượng bản ghi theo limit
+    # offset: bỏ qua bao nhiêu bản ghi
+    # limit: lấy tối đa bao nhiêu bản ghi
     query = query.offset(offset).limit(limit)
 
+    # Trả về kết quả
     return query.all()
