@@ -23,7 +23,9 @@ router = APIRouter(
 @router.post(
     "/construction-sites/{site_id}",
     response_model=WorkItemResponse,
-    status_code=status.HTTP_201_CREATED
+    status_code=status.HTTP_201_CREATED,
+    summary="Tạo hạng mục công việc",
+    description="Tạo một hạng mục công việc thuộc công trình."
 )
 def create_work_item(
     site_id: int,
@@ -102,7 +104,9 @@ def create_work_item(
 # Danh sách work_item
 @router.get(
     "/construction-sites/{site_id}",
-    response_model=list[WorkItemResponse]
+    response_model=list[WorkItemResponse],
+    summary="Danh sách hạng mục",
+    description="Lấy danh sách các hạng mục công việc của công trình."
 )
 def get_work_items(
     site_id: int,
@@ -150,7 +154,9 @@ def get_work_items(
 # Chi tiết work_item
 @router.get(
     "/{work_id}",
-    response_model=WorkItemResponse
+    response_model=WorkItemResponse,
+    summary="Chi tiết hạng mục",
+    description="Lấy thông tin chi tiết của một hạng mục công việc."
 )
 def get_work_item(
     work_id: int,
@@ -197,7 +203,9 @@ def get_work_item(
 # Cập nhật work_item
 @router.patch(
     "/{work_id}",
-    response_model=WorkItemResponse
+    response_model=WorkItemResponse,
+    summary="Cập nhật hạng mục",
+    description="Cập nhật thông tin hạng mục công việc."
 )
 def update_work_item(
     work_id: int,
@@ -255,7 +263,11 @@ def update_work_item(
     return work
 
 # Xóa work_item
-@router.delete("/{work_id}")
+@router.delete(
+    "/{work_id}",
+    summary="Xóa hạng mục",
+    description="Xóa một hạng mục công việc. Chỉ OWNER mới có quyền xóa."
+)
 def delete_work_item(
     work_id: int,
     db: Session = Depends(get_db),
@@ -292,7 +304,9 @@ def delete_work_item(
 # Search, filter
 @router.get(
     "/construction-sites/{site_id}/search",
-    response_model=list[WorkItemResponse]
+    response_model=list[WorkItemResponse],
+    summary="Tìm kiếm và lọc hạng mục",
+    description="Tìm kiếm theo tên và lọc hạng mục theo status, priority, assignee. Có hỗ trợ phân trang."
 )
 def search_work_items(
     site_id: int,

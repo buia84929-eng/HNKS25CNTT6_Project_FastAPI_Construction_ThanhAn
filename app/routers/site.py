@@ -5,6 +5,9 @@ from app.db.database import get_db
 from app.dependencies.auth import get_current_user
 from app.models.user import User
 from app.models.site import ConstructionSite, SiteMember
+from app.models.activity_log import ActivityLog
+# Import hàm dùng để ghi lịch sử thao tác
+from app.services.activity_log import create_activity_log
 
 from app.schemas.site import (
     SiteCreate,
@@ -26,7 +29,9 @@ router = APIRouter(
 @router.post(
     "",
     response_model=SiteResponse,
-    status_code=status.HTTP_201_CREATED
+    status_code=status.HTTP_201_CREATED,
+    summary="Tạo công trình",
+    description="Tạo một công trình mới và tự động thêm người tạo làm OWNER."
 )
 def create_site(
     site_data: SiteCreate,
@@ -65,6 +70,15 @@ def create_site(
     # Lưu xuống database
     db.commit()
 
+    # Ghi log thao tác tạo công trình
+    create_activity_log(
+        db=db,
+        user_id=current_user.id,
+        site_id=site.id,
+        action="CREATE_SITE",
+        description=f'Tạo công trình "{site.name}"'
+    )
+
     # Trả về công trình vừa tạo
     return site
 
@@ -73,7 +87,9 @@ def create_site(
 # GET /construction-sites
 @router.get(
     "",
-    response_model=list[SiteResponse]
+    response_model=list[SiteResponse],
+    summary="Danh sách công trình",
+    description="Lấy danh sách các công trình mà người dùng có quyền xem."
 )
 def get_my_sites(
     db: Session = Depends(get_db),
@@ -102,7 +118,9 @@ def get_my_sites(
 # GET /construction-sites/{site_id}
 @router.get(
     "/{site_id}",
-    response_model=SiteResponse
+    response_model=SiteResponse,
+    summary="Chi tiết công trình",
+    description="Lấy thông tin chi tiết của một công trình."
 )
 def get_site_detail(
     site_id: int,
@@ -152,7 +170,9 @@ def get_site_detail(
 # PATCH /construction-sites/{site_id}
 @router.patch(
     "/{site_id}",
-    response_model=SiteResponse
+    response_model=SiteResponse,
+    summary="Cập nhật công trình",
+    description="Cập nhật thông tin công trình. Chỉ OWNER có quyền chỉnh sửa."
 )
 def update_site(
     site_id: int,
@@ -193,13 +213,24 @@ def update_site(
     db.commit()
     db.refresh(site)
 
+    # Ghi log thao tác sửa công trình
+    create_activity_log(
+        db=db,
+        user_id=current_user.id,
+        site_id=site.id,
+        action="UPDATE_SITE",
+        description=f'Cập nhật công trình "{site.name}"'
+    )
+
     return site
 
 
 # api 5: xóa công trình
 # DELETE /construction-sites/{site_id}
 @router.delete(
-    "/{site_id}"
+    "/{site_id}",
+    summary="Xóa công trình",
+    description="Xóa một công trình. Chỉ OWNER mới có quyền thực hiện."
 )
 def delete_site(
     site_id: int,
@@ -308,6 +339,15 @@ def add_member(
     db.add(member)
     db.commit()
     db.refresh(member)
+
+    # Ghi log thao tác thêm thành viên
+    create_activity_log(
+        db=db,
+        user_id=current_user.id,
+        site_id=site_id,
+        action="ADD_MEMBER",
+        description=f"Thêm user {member_data.user_id} vào công trình"
+    )
 
     return MemberResponse(
         user_id=user.id,
@@ -433,6 +473,15 @@ def remove_member(
     # Xóa member
     db.delete(member)
     db.commit()
+
+    # Ghi log thao tác xóa thành viên
+    create_activity_log(
+        db=db,
+        user_id=current_user.id,
+        site_id=site_id,
+        action="REMOVE_MEMBER",
+        description=f"Xóa user {user_id} khỏi công trình"
+    )
 
     return {
         "message": "Xóa thành viên thành công"

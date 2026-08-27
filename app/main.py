@@ -6,6 +6,7 @@ from app.db.database import Base, engine
 from app.models.user import User
 from app.models.site import ConstructionSite, SiteMember
 from app.models.works_item import WorkItem
+from app.models.activity_log import ActivityLog
 
 from app.routers import auth, users, site, work_item
 

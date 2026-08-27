@@ -13,7 +13,9 @@ router = APIRouter(
 
 @router.get(
     "/me",
-    response_model=UserResponse
+    response_model=UserResponse,
+    summary="Xem thông tin cá nhân",
+    description="Lấy thông tin của tài khoản đang đăng nhập."
 )
 def get_my_profile(
     current_user: User = Depends(get_current_user)
@@ -24,7 +26,9 @@ def get_my_profile(
 
 @router.get(
     "",
-    response_model=list[UserResponse]
+    response_model=list[UserResponse],
+    summary="Danh sách người dùng",
+    description="Lấy danh sách người dùng. Chỉ ADMIN được phép truy cập."
 )
 def get_users(
     name: str | None = None,
